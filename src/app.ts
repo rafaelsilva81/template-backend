@@ -1,26 +1,30 @@
-import express from "express";
+import fastify from "fastify";
 import { env } from "./config/env";
-import morgan from "morgan";
-import cors from "cors";
+import cors from "@fastify/cors";
 import exampleRouter from "./routes/exampleRouter";
 
-async function bootstrap() {
-  const app = express();
-
-  // Middleware
-  app.use(express.json());
-  app.use(morgan(env.NODE_ENV === "production" ? "combined" : "dev"));
-  app.use(cors({ exposedHeaders: "Authorization" }));
-  app.use(express.urlencoded({ extended: true }));
-
-  // Routes
-  app.use("/example", exampleRouter);
-
-  app.listen(env.PORT, () => {
-    console.debug(`Server is running on port http://localhost:${env.PORT}`);
+const bootstrap = async () => {
+  const app = fastify({
+    logger: env.NODE_ENV === "development",
   });
-}
 
-bootstrap().catch((err) => {
-  console.error(err);
-});
+  app.register(cors);
+
+  app.register(exampleRouter, { prefix: "/example" });
+
+  await app.listen({
+    port: env.PORT,
+    host: "0.0.0.0",
+  });
+
+  await app.ready();
+};
+
+bootstrap()
+  .then(() => {
+    console.log(`Server is running on http://localhost:${env.PORT}`);
+  })
+  .catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
