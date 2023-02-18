@@ -15,6 +15,8 @@ export default class ExampleService {
         id: id,
       },
     });
+
+    return example;
   }
 
   async createExample(data: z.TypeOf<typeof createExampleSchema>) {
